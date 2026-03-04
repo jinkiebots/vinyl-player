@@ -241,29 +241,19 @@ function getPointerAngle(clientX, clientY) {
     return Math.atan2(clientY - pivot.y, clientX - pivot.x) * 180 / Math.PI;
 }
 
-let dropAudioCtx;
-let dropSoundBuffer;
-
-(function loadDropSound() {
-    dropAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    fetch('dragon-studio-button-press-382713.mp3')
-        .then(r => r.arrayBuffer())
-        .then(buf => dropAudioCtx.decodeAudioData(buf))
-        .then(decoded => { dropSoundBuffer = decoded; })
-        .catch(() => {});
-})();
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
 let audioUnlocked = false;
 function unlockAllAudio() {
     if (audioUnlocked) return;
     audioUnlocked = true;
 
-    if (dropAudioCtx && dropAudioCtx.state === 'suspended') dropAudioCtx.resume();
-    const silent = dropAudioCtx.createBuffer(1, 1, 22050);
-    const src = dropAudioCtx.createBufferSource();
-    src.buffer = silent;
-    src.connect(dropAudioCtx.destination);
-    src.start(0);
+    audioCtx.resume();
+    const silent = audioCtx.createBuffer(1, 1, 22050);
+    const s = audioCtx.createBufferSource();
+    s.buffer = silent;
+    s.connect(audioCtx.destination);
+    s.start(0);
 
     if (state.ytPlayer && typeof state.ytPlayer.playVideo === 'function') {
         state.ytPlayer.setVolume(0);
@@ -279,12 +269,31 @@ document.addEventListener('touchstart', unlockAllAudio, { once: true });
 document.addEventListener('click', unlockAllAudio, { once: true });
 
 function playDropSound() {
-    if (!dropAudioCtx || !dropSoundBuffer) return;
-    dropAudioCtx.resume().then(() => {
-        const src = dropAudioCtx.createBufferSource();
-        src.buffer = dropSoundBuffer;
-        src.connect(dropAudioCtx.destination);
-        src.start(0);
+    audioCtx.resume().then(() => {
+        const t = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.frequency.setValueAtTime(800, t);
+        osc.frequency.exponentialRampToValueAtTime(150, t + 0.06);
+        gain.gain.setValueAtTime(0.3, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+        osc.start(t);
+        osc.stop(t + 0.08);
+
+        const noise = audioCtx.createBufferSource();
+        const noiseBuf = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.04, audioCtx.sampleRate);
+        const data = noiseBuf.getChannelData(0);
+        for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.15;
+        noise.buffer = noiseBuf;
+        const noiseGain = audioCtx.createGain();
+        noise.connect(noiseGain);
+        noiseGain.connect(audioCtx.destination);
+        noiseGain.gain.setValueAtTime(0.2, t);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+        noise.start(t);
+        noise.stop(t + 0.04);
     });
 }
 
@@ -292,7 +301,7 @@ function handleDragStart(clientX, clientY) {
     isDragging = true;
     dragOffset = getPointerAngle(clientX, clientY) - currentAngle;
     unlockAllAudio();
-    if (dropAudioCtx) dropAudioCtx.resume();
+    audioCtx.resume();
 }
 
 function handleDragMove(clientX, clientY) {
