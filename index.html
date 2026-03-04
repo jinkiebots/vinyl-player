@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analog-Digital Vinyl Video Player</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="grain-overlay"></div>
+
+    <div class="turntable-container">
+        <!-- The Hi-Fi Cabinet -->
+        <div class="cabinet">
+            <div class="cabinet-top">
+
+                <!-- The Platter Area -->
+                <div class="platter-area">
+
+                    <!-- Vinyl Record -->
+                    <div class="vinyl-record" id="vinylRecord">
+                        <div class="vinyl-grooves"></div>
+                        <div class="vinyl-label">
+                            <span class="vinyl-credit" id="vinylCredit">design by @minjyue<br><span class="vinyl-credit-name">made with claude</span></span>
+                            <div class="label-ring"></div>
+                            <div class="video-container" id="videoContainer">
+                                <video id="videoPlayer" crossorigin="anonymous"></video>
+                                <div id="youtubePlayer"></div>
+                                <div class="dust-overlay"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tonearm -->
+                    <div class="tonearm-assembly" id="tonearmAssembly">
+                        <div class="tonearm-base"></div>
+                        <div class="tonearm" id="tonearm">
+                            <img src="image 3.png" alt="Tonearm">
+                            <div class="tonearm-handle" id="tonearmHandle"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input Deck -->
+                <div class="input-deck" id="inputDeck">
+                    <div class="deck-panel">
+                        <h2 class="deck-title">MEDIA INPUT</h2>
+
+                        <div class="input-group">
+                            <label class="input-label">YouTube URL</label>
+                            <input type="text"
+                                   id="youtubeInput"
+                                   class="retro-input"
+                                   placeholder="https://www.youtube.com/watch?v=...">
+                        </div>
+
+                        <div class="button-row">
+                            <div class="cassette-slot">
+                                <input type="file"
+                                       id="fileInput"
+                                       accept="video/*">
+                                <label for="fileInput" class="action-button">
+                                    INSERT MP4
+                                </label>
+                            </div>
+                            <button class="action-button" id="loadButton">
+                                LOAD MEDIA
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- RPM Control -->
+                <div class="rpm-control" id="rpmControl">
+                    <label class="rpm-label">PLAYBACK SPEED</label>
+                    <div class="rpm-slider-container">
+                        <span class="rpm-mark">0.5x</span>
+                        <input type="range"
+                               id="rpmSlider"
+                               class="rpm-slider"
+                               min="0.5"
+                               max="2"
+                               step="0.1"
+                               value="1"
+                               disabled>
+                        <span class="rpm-mark">2.0x</span>
+                    </div>
+                    <div class="rpm-display" id="rpmDisplay">1.0x</div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script src="script.js"></script>
+</body>
+</html>

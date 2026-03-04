@@ -1,0 +1,12 @@
+{
+  "name": "vinyl-video-player",
+  "version": "1.0.0",
+  "description": "Analog-Digital Vinyl Video Player - A retro-inspired skeuomorphic media player",
+  "main": "index.html",
+  "scripts": {
+    "start": "python3 -m http.server 3000"
+  },
+  "keywords": ["vinyl", "video", "player", "retro", "skeuomorphic"],
+  "author": "",
+  "license": "MIT"
+}
