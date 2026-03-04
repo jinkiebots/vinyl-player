@@ -147,7 +147,8 @@ loadButton.addEventListener('click', () => {
         videoPlayer.style.display = 'none';
         const ytEl = document.getElementById('youtubePlayer');
         ytEl.style.display = 'block';
-        ytEl.style.visibility = 'visible';
+        ytEl.style.opacity = '1';
+        ytEl.style.position = '';
 
         if (!state.ytReady) {
             alert('YouTube player is still loading. Please wait a moment and try again.');
@@ -240,11 +241,45 @@ function getPointerAngle(clientX, clientY) {
     return Math.atan2(clientY - pivot.y, clientX - pivot.x) * 180 / Math.PI;
 }
 
-const dropSound = new Audio('dragon-studio-button-press-382713.mp3');
+let dropAudioCtx;
+let dropSoundBuffer;
+
+(function loadDropSound() {
+    dropAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    fetch('dragon-studio-button-press-382713.mp3')
+        .then(r => r.arrayBuffer())
+        .then(buf => dropAudioCtx.decodeAudioData(buf))
+        .then(decoded => { dropSoundBuffer = decoded; })
+        .catch(() => {});
+})();
+
+function initAudioSession() {
+    if (!dropAudioCtx) return;
+    if (dropAudioCtx.state === 'suspended') dropAudioCtx.resume();
+    const silent = dropAudioCtx.createBuffer(1, 1, 22050);
+    const src = dropAudioCtx.createBufferSource();
+    src.buffer = silent;
+    src.connect(dropAudioCtx.destination);
+    src.start(0);
+    document.removeEventListener('touchstart', initAudioSession);
+    document.removeEventListener('click', initAudioSession);
+}
+document.addEventListener('touchstart', initAudioSession, { once: false });
+document.addEventListener('click', initAudioSession, { once: false });
+
+function playDropSound() {
+    if (!dropAudioCtx || !dropSoundBuffer) return;
+    if (dropAudioCtx.state === 'suspended') dropAudioCtx.resume();
+    const src = dropAudioCtx.createBufferSource();
+    src.buffer = dropSoundBuffer;
+    src.connect(dropAudioCtx.destination);
+    src.start(0);
+}
 
 function handleDragStart(clientX, clientY) {
     isDragging = true;
     dragOffset = getPointerAngle(clientX, clientY) - currentAngle;
+    if (dropAudioCtx && dropAudioCtx.state === 'suspended') dropAudioCtx.resume();
 }
 
 function handleDragMove(clientX, clientY) {
@@ -265,8 +300,7 @@ function handleDragEnd() {
     if (!isDragging) return;
     isDragging = false;
 
-    dropSound.currentTime = 0;
-    dropSound.play().catch(() => {});
+    playDropSound();
 
     if (!state.isLoaded) return;
 
@@ -395,7 +429,8 @@ function preloadSong() {
     videoPlayer.style.display = 'none';
     const ytEl = document.getElementById('youtubePlayer');
     ytEl.style.display = 'block';
-    ytEl.style.visibility = 'hidden';
+    ytEl.style.opacity = '0';
+    ytEl.style.position = 'absolute';
 
     function tryCreate() {
         if (!state.ytReady) {
