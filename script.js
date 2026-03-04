@@ -242,23 +242,11 @@ function getPointerAngle(clientX, clientY) {
 }
 
 const dropSound = new Audio('dragon-studio-button-press-382713.mp3');
-dropSound.preload = 'auto';
-dropSound.load();
 
-let audioUnlocked = false;
-function unlockAllAudio() {
-    if (audioUnlocked) return;
-    audioUnlocked = true;
-
-    dropSound.muted = true;
-    dropSound.play().then(() => {
-        dropSound.pause();
-        dropSound.muted = false;
-        dropSound.currentTime = 0;
-    }).catch(() => {
-        dropSound.muted = false;
-    });
-
+let ytUnlocked = false;
+function unlockYouTube() {
+    if (ytUnlocked) return;
+    ytUnlocked = true;
     if (state.ytPlayer && typeof state.ytPlayer.playVideo === 'function') {
         state.ytPlayer.setVolume(0);
         state.ytPlayer.playVideo();
@@ -269,18 +257,18 @@ function unlockAllAudio() {
         }, 200);
     }
 }
-document.addEventListener('touchstart', unlockAllAudio, { once: true });
-document.addEventListener('click', unlockAllAudio, { once: true });
+document.addEventListener('touchstart', unlockYouTube, { once: true });
+document.addEventListener('click', unlockYouTube, { once: true });
 
 function playDropSound() {
-    dropSound.currentTime = 0;
-    dropSound.play().catch(() => {});
+    const s = dropSound.cloneNode();
+    s.play().catch(() => {});
 }
 
 function handleDragStart(clientX, clientY) {
     isDragging = true;
     dragOffset = getPointerAngle(clientX, clientY) - currentAngle;
-    unlockAllAudio();
+    unlockYouTube();
 }
 
 function handleDragMove(clientX, clientY) {
