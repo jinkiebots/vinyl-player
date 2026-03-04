@@ -365,6 +365,26 @@ body {
     display: none;
 }
 
+.melody-note-wrapper {
+    margin-top: 14px;
+    position: relative;
+    overflow: visible;
+    min-height: 60px;
+}
+
+.melody-note {
+    color: rgba(0, 0, 0, 0.35);
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.08);
+    font-size: 12px;
+    font-style: italic;
+    line-height: 1.6;
+    text-align: left;
+    position: relative;
+    transition: transform 0.1s ease-out;
+    cursor: default;
+    user-select: none;
+}
+
 /* Input Deck */
 .input-deck {
     width: 280px;

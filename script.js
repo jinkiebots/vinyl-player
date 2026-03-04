@@ -104,6 +104,8 @@ fileInput.addEventListener('change', (e) => {
         state.currentVideo = url;
         state.sourceType = 'local';
         youtubeInput.value = '';
+        const melodyNote = document.querySelector('.melody-note');
+        if (melodyNote) melodyNote.style.display = 'none';
     }
 });
 
@@ -111,6 +113,8 @@ fileInput.addEventListener('change', (e) => {
 youtubeInput.addEventListener('input', (e) => {
     const url = e.target.value.trim();
     if (!url) return;
+    const melodyNote = document.querySelector('.melody-note');
+    if (melodyNote) melodyNote.style.display = 'none';
     const ytId = extractYouTubeId(url);
     if (ytId) {
         state.currentVideo = ytId;
@@ -121,11 +125,13 @@ youtubeInput.addEventListener('input', (e) => {
     }
 });
 
-function finishLoad() {
+function finishLoad(keepCredit) {
     state.isLoaded = true;
     rpmControl.classList.add('active');
     rpmSlider.disabled = false;
-    document.getElementById('vinylCredit').classList.add('hidden');
+    if (!keepCredit) {
+        document.getElementById('vinylCredit').classList.add('hidden');
+    }
 }
 
 // Load Media Button
@@ -135,9 +141,13 @@ loadButton.addEventListener('click', () => {
         return;
     }
 
+    state.isPreloaded = false;
+
     if (state.sourceType === 'youtube') {
         videoPlayer.style.display = 'none';
-        document.getElementById('youtubePlayer').style.display = 'block';
+        const ytEl = document.getElementById('youtubePlayer');
+        ytEl.style.display = 'block';
+        ytEl.style.visibility = 'visible';
 
         if (!state.ytReady) {
             alert('YouTube player is still loading. Please wait a moment and try again.');
@@ -370,3 +380,91 @@ videoPlayer.addEventListener('ratechange', () => {
 });
 
 tonearm.style.transform = `rotate(${currentAngle}deg)`;
+
+// Preload song
+function preloadSong() {
+    const preloadId = 'GHwVwZ0REtY';
+    state.currentVideo = preloadId;
+    state.sourceType = 'youtube';
+    state.isPreloaded = true;
+
+    videoPlayer.style.display = 'none';
+    const ytEl = document.getElementById('youtubePlayer');
+    ytEl.style.display = 'block';
+    ytEl.style.visibility = 'hidden';
+
+    function tryCreate() {
+        if (!state.ytReady) {
+            setTimeout(tryCreate, 200);
+            return;
+        }
+        createYouTubePlayer(preloadId, () => {
+            finishLoad(true);
+        });
+    }
+    tryCreate();
+}
+preloadSong();
+
+// Runaway text interaction
+const melodyNote = document.getElementById('melodyNote');
+const noteWrapper = document.getElementById('melodyNoteWrapper');
+const originalText = melodyNote ? melodyNote.textContent : '';
+let isRunning = false;
+
+if (melodyNote && noteWrapper) {
+    const detectDistance = 250;
+    melodyNote.addEventListener('mouseenter', () => {
+        if (isRunning) {
+            melodyNote.textContent = 'haha hi';
+            melodyNote.style.transform = 'translate(0, 0) rotate(0deg) scale(1)';
+        }
+    });
+
+    melodyNote.addEventListener('mouseleave', () => {
+        isRunning = false;
+        melodyNote.textContent = originalText;
+        melodyNote.style.transform = 'translate(0, 0) rotate(0deg) scale(1)';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+
+        const rect = melodyNote.getBoundingClientRect();
+        const noteCenterX = rect.left + rect.width / 2;
+        const noteCenterY = rect.top + rect.height / 2;
+
+        const dx = noteCenterX - e.clientX;
+        const dy = noteCenterY - e.clientY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < detectDistance) {
+            if (!isRunning) {
+                isRunning = true;
+                melodyNote.textContent = 'catch me if you can ;)';
+            }
+            const force = Math.pow((detectDistance - dist) / detectDistance, 1.2) * 250;
+            const angle = Math.atan2(dy, dx);
+            const moveX = Math.cos(angle) * force;
+            const moveY = Math.sin(angle) * force * 0.6;
+            const rotation = (Math.random() - 0.5) * 15;
+            melodyNote.style.transform = `translate(${moveX}px, ${moveY}px) rotate(${rotation}deg) scale(${1 + (force / 250) * 0.3})`;
+        } else if (isRunning) {
+            isRunning = false;
+            melodyNote.textContent = originalText;
+            melodyNote.style.transform = 'translate(0, 0) rotate(0deg) scale(1)';
+        }
+    });
+
+    melodyNote.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        melodyNote.textContent = 'catch me if you can ;)';
+        const jumpX = (Math.random() - 0.5) * 200;
+        const jumpY = -40 - Math.random() * 60;
+        const rotation = (Math.random() - 0.5) * 30;
+        melodyNote.style.transform = `translate(${jumpX}px, ${jumpY}px) rotate(${rotation}deg) scale(1.2)`;
+        setTimeout(() => {
+            melodyNote.style.transform = 'translate(0, 0) rotate(0deg) scale(1)';
+            melodyNote.textContent = originalText;
+        }, 1000);
+    }, { passive: false });
+}
