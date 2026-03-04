@@ -325,6 +325,8 @@ function playWithPop() {
     if (!state.isLoaded) return;
 
     if (state.sourceType === 'youtube' && state.ytPlayer) {
+        state.ytPlayer.unMute();
+        state.ytPlayer.setVolume(100);
         state.ytPlayer.playVideo();
     } else {
         videoPlayer.play().catch(err => {
@@ -382,9 +384,11 @@ videoPlayer.addEventListener('ratechange', () => {
 tonearm.style.transform = `rotate(${currentAngle}deg)`;
 
 // Preload song
+const PRELOAD_ID = 'GHwVwZ0REtY';
+let preloadReady = false;
+
 function preloadSong() {
-    const preloadId = 'GHwVwZ0REtY';
-    state.currentVideo = preloadId;
+    state.currentVideo = PRELOAD_ID;
     state.sourceType = 'youtube';
     state.isPreloaded = true;
 
@@ -398,13 +402,15 @@ function preloadSong() {
             setTimeout(tryCreate, 200);
             return;
         }
-        createYouTubePlayer(preloadId, () => {
+        createYouTubePlayer(PRELOAD_ID, () => {
             finishLoad(true);
+            preloadReady = true;
         });
     }
     tryCreate();
 }
 preloadSong();
+
 
 // Runaway text interaction
 const melodyNote = document.getElementById('melodyNote');
@@ -413,21 +419,28 @@ const originalText = melodyNote ? melodyNote.textContent : '';
 let isRunning = false;
 
 if (melodyNote && noteWrapper) {
-    const detectDistance = 250;
+    let hovered = false;
+
     melodyNote.addEventListener('mouseenter', () => {
-        if (isRunning) {
+        hovered = true;
+        if (!isRunning) {
+            isRunning = true;
+            melodyNote.textContent = 'catch me if you can ;)';
+        } else {
             melodyNote.textContent = 'haha hi';
             melodyNote.style.transform = 'translate(0, 0) rotate(0deg) scale(1)';
         }
     });
 
     melodyNote.addEventListener('mouseleave', () => {
+        hovered = false;
         isRunning = false;
         melodyNote.textContent = originalText;
         melodyNote.style.transform = 'translate(0, 0) rotate(0deg) scale(1)';
     });
 
     document.addEventListener('mousemove', (e) => {
+        if (!isRunning || hovered) return;
 
         const rect = melodyNote.getBoundingClientRect();
         const noteCenterX = rect.left + rect.width / 2;
@@ -437,18 +450,15 @@ if (melodyNote && noteWrapper) {
         const dy = noteCenterY - e.clientY;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
+        const detectDistance = 250;
         if (dist < detectDistance) {
-            if (!isRunning) {
-                isRunning = true;
-                melodyNote.textContent = 'catch me if you can ;)';
-            }
             const force = Math.pow((detectDistance - dist) / detectDistance, 1.2) * 250;
             const angle = Math.atan2(dy, dx);
             const moveX = Math.cos(angle) * force;
             const moveY = Math.sin(angle) * force * 0.6;
             const rotation = (Math.random() - 0.5) * 15;
             melodyNote.style.transform = `translate(${moveX}px, ${moveY}px) rotate(${rotation}deg) scale(${1 + (force / 250) * 0.3})`;
-        } else if (isRunning) {
+        } else {
             isRunning = false;
             melodyNote.textContent = originalText;
             melodyNote.style.transform = 'translate(0, 0) rotate(0deg) scale(1)';
