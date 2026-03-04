@@ -422,7 +422,6 @@ if (melodyNote && noteWrapper) {
     let hovered = false;
 
     melodyNote.addEventListener('mouseenter', () => {
-        hovered = true;
         if (!isRunning) {
             isRunning = true;
             melodyNote.textContent = 'catch me if you can ;)';
@@ -433,14 +432,11 @@ if (melodyNote && noteWrapper) {
     });
 
     melodyNote.addEventListener('mouseleave', () => {
-        hovered = false;
-        isRunning = false;
-        melodyNote.textContent = originalText;
-        melodyNote.style.transform = 'translate(0, 0) rotate(0deg) scale(1)';
+        if (!isRunning) return;
     });
 
     document.addEventListener('mousemove', (e) => {
-        if (!isRunning || hovered) return;
+        if (!isRunning) return;
 
         const rect = melodyNote.getBoundingClientRect();
         const noteCenterX = rect.left + rect.width / 2;
