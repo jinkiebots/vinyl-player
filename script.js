@@ -241,19 +241,23 @@ function getPointerAngle(clientX, clientY) {
     return Math.atan2(clientY - pivot.y, clientX - pivot.x) * 180 / Math.PI;
 }
 
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const dropSound = new Audio('dragon-studio-button-press-382713.mp3');
+dropSound.preload = 'auto';
+dropSound.load();
 
 let audioUnlocked = false;
 function unlockAllAudio() {
     if (audioUnlocked) return;
     audioUnlocked = true;
 
-    audioCtx.resume();
-    const silent = audioCtx.createBuffer(1, 1, 22050);
-    const s = audioCtx.createBufferSource();
-    s.buffer = silent;
-    s.connect(audioCtx.destination);
-    s.start(0);
+    dropSound.muted = true;
+    dropSound.play().then(() => {
+        dropSound.pause();
+        dropSound.muted = false;
+        dropSound.currentTime = 0;
+    }).catch(() => {
+        dropSound.muted = false;
+    });
 
     if (state.ytPlayer && typeof state.ytPlayer.playVideo === 'function') {
         state.ytPlayer.setVolume(0);
@@ -269,38 +273,14 @@ document.addEventListener('touchstart', unlockAllAudio, { once: true });
 document.addEventListener('click', unlockAllAudio, { once: true });
 
 function playDropSound() {
-    audioCtx.resume();
-    const t = audioCtx.currentTime;
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.frequency.setValueAtTime(800, t);
-    osc.frequency.exponentialRampToValueAtTime(150, t + 0.06);
-    gain.gain.setValueAtTime(0.3, t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
-    osc.start(t);
-    osc.stop(t + 0.08);
-
-    const noise = audioCtx.createBufferSource();
-    const noiseBuf = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.04, audioCtx.sampleRate);
-    const data = noiseBuf.getChannelData(0);
-    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.15;
-    noise.buffer = noiseBuf;
-    const noiseGain = audioCtx.createGain();
-    noise.connect(noiseGain);
-    noiseGain.connect(audioCtx.destination);
-    noiseGain.gain.setValueAtTime(0.2, t);
-    noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
-    noise.start(t);
-    noise.stop(t + 0.04);
+    dropSound.currentTime = 0;
+    dropSound.play().catch(() => {});
 }
 
 function handleDragStart(clientX, clientY) {
     isDragging = true;
     dragOffset = getPointerAngle(clientX, clientY) - currentAngle;
     unlockAllAudio();
-    audioCtx.resume();
 }
 
 function handleDragMove(clientX, clientY) {
