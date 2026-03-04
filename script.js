@@ -253,19 +253,30 @@ let dropSoundBuffer;
         .catch(() => {});
 })();
 
-function initAudioSession() {
-    if (!dropAudioCtx) return;
-    if (dropAudioCtx.state === 'suspended') dropAudioCtx.resume();
+let audioUnlocked = false;
+function unlockAllAudio() {
+    if (audioUnlocked) return;
+    audioUnlocked = true;
+
+    if (dropAudioCtx && dropAudioCtx.state === 'suspended') dropAudioCtx.resume();
     const silent = dropAudioCtx.createBuffer(1, 1, 22050);
     const src = dropAudioCtx.createBufferSource();
     src.buffer = silent;
     src.connect(dropAudioCtx.destination);
     src.start(0);
-    document.removeEventListener('touchstart', initAudioSession);
-    document.removeEventListener('click', initAudioSession);
+
+    if (state.ytPlayer && typeof state.ytPlayer.playVideo === 'function') {
+        state.ytPlayer.setVolume(0);
+        state.ytPlayer.playVideo();
+        setTimeout(() => {
+            state.ytPlayer.pauseVideo();
+            state.ytPlayer.seekTo(0, true);
+            state.ytPlayer.setVolume(100);
+        }, 200);
+    }
 }
-document.addEventListener('touchstart', initAudioSession, { once: false });
-document.addEventListener('click', initAudioSession, { once: false });
+document.addEventListener('touchstart', unlockAllAudio, { once: true });
+document.addEventListener('click', unlockAllAudio, { once: true });
 
 function playDropSound() {
     if (!dropAudioCtx || !dropSoundBuffer) return;
@@ -279,7 +290,7 @@ function playDropSound() {
 function handleDragStart(clientX, clientY) {
     isDragging = true;
     dragOffset = getPointerAngle(clientX, clientY) - currentAngle;
-    if (dropAudioCtx && dropAudioCtx.state === 'suspended') dropAudioCtx.resume();
+    unlockAllAudio();
 }
 
 function handleDragMove(clientX, clientY) {
