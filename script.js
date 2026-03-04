@@ -280,17 +280,26 @@ document.addEventListener('click', unlockAllAudio, { once: true });
 
 function playDropSound() {
     if (!dropAudioCtx || !dropSoundBuffer) return;
-    if (dropAudioCtx.state === 'suspended') dropAudioCtx.resume();
-    const src = dropAudioCtx.createBufferSource();
-    src.buffer = dropSoundBuffer;
-    src.connect(dropAudioCtx.destination);
-    src.start(0);
+    if (dropAudioCtx.state === 'suspended') {
+        dropAudioCtx.resume().then(() => {
+            const src = dropAudioCtx.createBufferSource();
+            src.buffer = dropSoundBuffer;
+            src.connect(dropAudioCtx.destination);
+            src.start(0);
+        });
+    } else {
+        const src = dropAudioCtx.createBufferSource();
+        src.buffer = dropSoundBuffer;
+        src.connect(dropAudioCtx.destination);
+        src.start(0);
+    }
 }
 
 function handleDragStart(clientX, clientY) {
     isDragging = true;
     dragOffset = getPointerAngle(clientX, clientY) - currentAngle;
     unlockAllAudio();
+    if (dropAudioCtx && dropAudioCtx.state === 'suspended') dropAudioCtx.resume();
 }
 
 function handleDragMove(clientX, clientY) {
