@@ -145,10 +145,6 @@ loadButton.addEventListener('click', () => {
 
     if (state.sourceType === 'youtube') {
         videoPlayer.style.display = 'none';
-        const ytEl = document.getElementById('youtubePlayer');
-        ytEl.style.display = 'block';
-        ytEl.style.opacity = '1';
-        ytEl.style.position = '';
 
         if (!state.ytReady) {
             alert('YouTube player is still loading. Please wait a moment and try again.');
@@ -156,6 +152,12 @@ loadButton.addEventListener('click', () => {
         }
 
         createYouTubePlayer(state.currentVideo, () => {
+            const ytEl = document.getElementById('youtubePlayer');
+            if (ytEl) {
+                ytEl.style.display = 'block';
+                ytEl.style.opacity = '1';
+                ytEl.style.position = '';
+            }
             finishLoad();
         });
     } else {
