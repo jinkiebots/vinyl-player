@@ -692,11 +692,10 @@ body {
         gap: 15px;
     }
 
-    .melody-note-wrapper {
+    .input-deck {
         order: -1;
-        margin-top: 10px;
-        margin-bottom: 0;
-        text-align: center;
+        width: 100%;
+        margin-left: 0;
     }
 
     .melody-note {
@@ -717,11 +716,6 @@ body {
 
     .tonearm {
         width: 100px;
-    }
-
-    .input-deck {
-        width: 100%;
-        margin-left: 0;
     }
 
     .deck-panel {
